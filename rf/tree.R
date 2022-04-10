@@ -81,13 +81,14 @@ dat <- dat |>
 tidymodels_prefer()
 
 set.seed(2022)
+dat = dat[sample(nrow(dat), 20000), ]
 heart_split <- initial_split(data = dat, prop = 0.8)
 heart_train <- training(heart_split)
 heart_test <- testing(heart_split)
 heart_metrics <- metric_set(accuracy, roc_auc, mn_log_loss)
 
 set.seed(2023)
-heart_folds <- vfold_cv(heart_train, v = 10)
+heart_folds <- vfold_cv(heart_train, v = 5)
 
 #################
 ## build model ##
@@ -103,13 +104,13 @@ prep(heart_recipe)
 # Tunable tree model with early stopping
 
 stopping_spec <- rand_forest(
-  trees = tune(), mtry = 5, min_n =100) |>
-  set_engine("randomForest", validation = 0.1) |>
+  trees = 187, mtry = tune(), min_n =100) |>
+  set_engine("randomForest", validation = 0.2) |>
   set_mode("classification")
 
 stopping_grid <- grid_latin_hypercube(
-  trees(range = c(20, 100)),
-  size = 10
+  mtry(range = c(5L,10L)),
+  size = 5
 )
 
 # Workflow
@@ -133,8 +134,8 @@ toc()
 # approximately 1000 seconds
 
 autoplot(stopping_rs) +
-  geom_line() +
-  theme_minimal()
+  geom_line() 
+
 
 show_best(stopping_rs, metric = "roc_auc")
 
@@ -146,8 +147,7 @@ collect_metrics(stopping_fit)
 
 extract_workflow(stopping_fit) |>
   extract_fit_parsnip() |>
-  vip(num_features = 17, geom = "point") +
-  theme_minimal()
+  vip(num_features = 17, geom = "point") 
 
 collect_predictions(stopping_fit) |>
   roc_curve(heart_disease, .pred_No) |>
