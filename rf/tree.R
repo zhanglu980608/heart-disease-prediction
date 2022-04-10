@@ -104,12 +104,12 @@ prep(heart_recipe)
 # Tunable tree model with early stopping
 
 stopping_spec <- rand_forest(
-  trees = 187, mtry = tune(), min_n =100) |>
+  trees = 500, mtry = tune()) |>
   set_engine("randomForest", validation = 0.2) |>
   set_mode("classification")
 
 stopping_grid <- grid_latin_hypercube(
-  mtry(range = c(5L,10L)),
+  mtry(range = c(7L,10L)),
   size = 5
 )
 
